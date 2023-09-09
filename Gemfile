@@ -12,6 +12,9 @@ gem 'bcrypt', platform: :ruby do
     '--use-system-libraries' => true
   }
 end
+gem 'faker',      '2.1.2'
+gem 'will_paginate', '3.1.8'
+gem 'bootstrap-will_paginate','1.0.0'
 gem 'sass-rails', '6.0.0'
 gem 'webpacker',  '5.4.0'
 gem 'turbolinks', '5.2.1'
