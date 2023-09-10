@@ -70,6 +70,6 @@ class UserTest < ActiveSupport::TestCase
   end
 
   test "authenticated? shold return false for user with nil digest" do
-    assert_not @user.authenticated?('')
+    assert_not @user.authenticated?(:remember, '')
   end
 end
