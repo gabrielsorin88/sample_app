@@ -1,6 +1,16 @@
 class User < ApplicationRecord
   has_many :microposts, dependent: :destroy #allows the use of @user.microposts.build(arg)
   #by assoc the 2 models ,destroys microposts if user is destroyed
+  has_many :active_relationships, class_name: "Relationship", foreign_key: "follower_id", dependent:   :destroy
+  #allows to extract an array of followers as : active_relationships
+
+  has_many :passive_relationships, class_name:  "Relationship",foreign_key: "followed_id",dependent:   :destroy
+
+  has_many :following, through: :active_relationships, source: :followed#following is "followed"
+  #makes possible user.following << other_user, user.following.include?(other_user)etc
+  has_many :followers, through: :passive_relationships, source: :follower
+
+
   attr_accessor :remember_token, :activation_token, :reset_token
   before_save :downcase_email
   before_create :create_activation_digest
@@ -72,8 +82,31 @@ class User < ApplicationRecord
   # Defines a proto-feed.
 # See "Following users" for the full implementation.
   def feed
-    Micropost.where("user_id = ?", id)
+    following_ids = "SELECT followed_id FROM relationships 
+                      WHERE follower_id = :user_id"
+    Micropost.where("user_id IN (#{following_ids})
+                    OR user_id = :user_id", user_id: id)   
+    #user.following.map(&:id).join(', ') gives a string of id-s of users followed allowed by has_many
+    #following_ids as the same result thanks to ActiveRecod
   end
+
+    # Follows a user.
+  def follow(other_user)
+    following << other_user # adds to the db of followed users of a specific user
+  end
+
+    # Unfollows a user.
+  def unfollow(other_user)
+    following.delete(other_user)
+  end
+
+
+  # Returns true if the current user is following the other user.
+  def following?(other_user)
+    following.include?(other_user)
+  end
+
+
 
   private
   #converts email to all lower-case.
